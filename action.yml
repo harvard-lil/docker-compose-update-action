@@ -9,7 +9,7 @@ inputs:
     description: 'Name of image in docker-compose.yml'
     required: true
   registry:
-    description: 'Server address of Docker registry'
+    description: 'Server address of container registry'
     required: true
     default: "docker.io"
   registry-user:
@@ -55,13 +55,16 @@ runs:
       shell: bash
       run: |
         set -x
-        if [ "${{ github.event_name }}" = "push" ]; then
-          # log into docker
-          echo "${{ inputs.registry-pass }}" | docker login -u "${{ inputs.registry-user }}" --password-stdin "${{ inputs.registry }}"
 
-          # Build docker image and push
-          if [ "${{ steps.check-need-build.outputs.need-build }}" = "1" ]; then
-            docker build -t ${{ steps.get-tag.outputs.tag }} .
+        # build docker image
+        if [ "${{ steps.check-need-build.outputs.need-build }}" = "1" ]; then
+          docker build -t ${{ steps.get-tag.outputs.tag }} .
+        
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # log into docker
+            echo "${{ inputs.registry-pass }}" | docker login -u "${{ inputs.registry-user }}" --password-stdin "${{ inputs.registry }}"
+            # push
             docker push ${{ steps.get-tag.outputs.tag }}
           fi
         fi
+
