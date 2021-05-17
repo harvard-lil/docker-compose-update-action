@@ -8,13 +8,6 @@ inputs:
   image:
     description: 'Name of image in docker-compose.yml'
     required: true
-  git-email:
-    description: 'Git user email'
-    required: true
-  git-name:
-    description: 'Git user name'
-    required: true
-    default: "Github Actions"
   registry:
     description: 'Server address of Docker registry'
     required: true
@@ -63,15 +56,6 @@ runs:
       run: |
         set -x
         if [ "${{ github.event_name }}" = "push" ]; then
-          # Update image tag in git
-          if [[ `git status docker-compose.yml --porcelain` ]] ; then
-            git config user.email "${{ inputs.git-email }}"
-            git config user.name "${{ inputs.git-name }}"
-            git add docker-compose.yml
-            git commit -m "Bump image version"
-            git push origin develop
-          fi
-
           # log into docker
           echo "${{ inputs.registry-pass }}" | docker login -u "${{ inputs.registry-user }}" --password-stdin "${{ inputs.registry }}"
 
