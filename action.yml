@@ -2,11 +2,15 @@ name: 'Update docker-compose.yml'
 description: 'Update image version in docker-compose.yml, build and push image'
 
 inputs:
-  rebuild-if-changed:
-    description: 'List of files to hash'
-    required: true
   image:
     description: 'Name of image in docker-compose.yml'
+    required: true
+  docker-file:
+    description: 'Path to docker file to build'
+    required: true
+    default: 'Dockerfile'
+  rebuild-if-changed:
+    description: 'List of files to hash'
     required: true
   registry:
     description: 'Server address of container registry'
@@ -58,7 +62,7 @@ runs:
 
         # build docker image
         if [ "${{ steps.check-need-build.outputs.need-build }}" = "1" ]; then
-          docker build -t ${{ steps.get-tag.outputs.tag }} .
+          docker build -t ${{ steps.get-tag.outputs.tag }} -f "${{ inputs.docker-file }}" .
         
           if [ "${{ github.event_name }}" = "push" ]; then
             # log into docker
