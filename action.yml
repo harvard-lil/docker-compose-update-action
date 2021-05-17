@@ -44,20 +44,24 @@ runs:
     - name: Get current image and tag name
       id: get-tag
       working-directory: ${{ inputs.working-directory }}
-      shell: bash -x
-      run: python ${{ github.action_path }}/get_tag.py ${{ inputs.image }} ${{ inputs.rebuild-if-changed }}
+      shell: bash
+      run: |
+        set -x
+        python ${{ github.action_path }}/get_tag.py ${{ inputs.image }} ${{ inputs.rebuild-if-changed }}
 
     - name: Check if we need to rebuild
       id: check-need-build
-      shell: bash -x
+      shell: bash
       run: |
+        set -x
         RETURN_CODE=`docker manifest inspect ${{ steps.get-tag.outputs.tag }} > /dev/null && echo $? || echo $?`
         echo "::set-output name=need-build::$RETURN_CODE"
 
     - name: Update image tag in git
       working-directory: ${{ inputs.working-directory }}
-      shell: bash -x
+      shell: bash
       run: |
+        set -x
         if [ "${{ github.event_name }}" = "push" ]; then
           # Update image tag in git
           if [[ `git status docker-compose.yml --porcelain` ]] ; then
