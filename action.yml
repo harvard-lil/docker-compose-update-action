@@ -69,7 +69,7 @@ runs:
           fi
 
           # log into docker
-          docker login -u "${{ inputs.registry-pass }}" -p "${{ inputs.registry-pass }}" "${{ inputs.registry }}"
+          echo "${{ inputs.registry-pass }}" | docker login -u "${{ inputs.registry-user }}" --password-stdin "${{ inputs.registry }}"
 
           # Build docker image and push
           if [ "${{ steps.check-need-build.outputs.need-build }}" = "1" ]; then
