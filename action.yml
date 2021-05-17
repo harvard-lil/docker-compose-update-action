@@ -18,7 +18,7 @@ inputs:
   registry:
     description: 'Server address of Docker registry'
     required: true
-    default: "registry.hub.docker.com"
+    default: "docker.io"
   registry-user:
     description: 'User name for container registry'
     required: true
