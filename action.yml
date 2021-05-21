@@ -57,6 +57,9 @@ runs:
     - name: Update image tag in git
       working-directory: ${{ inputs.working-directory }}
       shell: bash
+      env:
+        REGISTRY_USER: ${{inputs.registry-user}}
+        REGISTRY_PASS: ${{inputs.registry-pass}}
       run: |
         set -x
 
@@ -66,7 +69,7 @@ runs:
         
           if [ "${{ github.event_name }}" = "push" ]; then
             # log into docker
-            echo "${{ inputs.registry-pass }}" | docker login -u "${{ inputs.registry-user }}" --password-stdin "${{ inputs.registry }}"
+            echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin "${{ inputs.registry }}"
             # push
             docker push ${{ steps.get-tag.outputs.tag }}
           fi
