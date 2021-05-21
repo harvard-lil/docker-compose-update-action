@@ -72,6 +72,8 @@ runs:
             echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin "${{ inputs.registry }}"
             # push
             docker push ${{ steps.get-tag.outputs.tag }}
+            # avoid leaving docker login on disk for tasks that don't have access to secrets
+            docker logout "${{ inputs.registry }}"
           fi
         fi
 
