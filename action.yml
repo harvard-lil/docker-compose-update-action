@@ -73,7 +73,7 @@ runs:
 
         # build docker image
         if [ "${{ steps.check-need-build.outputs.need-build }}" = "1" ]; then
-          docker buildx build --output "type=image,push=false" ${ARGS}
+          docker build -t ${{ steps.get-tag.outputs.tag }} -f "${{ inputs.docker-file }}" .
 
           if [ "${{ github.event_name }}" = "push" ]; then
             # log into docker
