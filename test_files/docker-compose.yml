@@ -1,0 +1,5 @@
+services:
+  toplevel:
+    image: toplevel:0.1-oldhash
+  subdir:
+    image: subdir:1-oldhash
