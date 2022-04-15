@@ -1,0 +1,18 @@
+services:
+  toplevel:
+    build:
+      context: .
+      x-bake:
+        tags:
+          - toplevel:0.1-oldhash
+      x-hash-paths:
+        - a.txt
+        - subdir/b.txt
+  subdir:
+    build:
+      context: subdir
+      x-bake:
+        tags:
+          - subdir:1-oldhash
+      x-hash-paths:
+        - b.txt
