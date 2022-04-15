@@ -14,7 +14,6 @@ import yaml
 def get_hash(input_paths, init_string=""):
     """Get hash of files or directories."""
     hasher = hashlib.sha256()
-    print(init_string.encode('utf-8'))
     hasher.update(init_string.encode('utf-8'))
     for path in sorted(input_paths):
         path = Path(path)
@@ -23,10 +22,9 @@ def get_hash(input_paths, init_string=""):
         elif path.is_dir():
             file_paths = sorted(p for p in path.glob('**/*') if p.is_file())
         else:
-            raise ValueError(f"{path} is not a file or directory")
+            raise ValueError(f"x-hash-paths: {path} is not a file or directory")
         for file_path in file_paths:
             print(f" - Hashing {file_path}")
-            print(file_path.read_bytes())
             hasher.update(file_path.read_bytes())
     return hasher.hexdigest()[:32]
 
@@ -74,7 +72,7 @@ def get_changed_tags(override_path, override_text):
 
 def remote_tag_exists(tag):
     """Check if a remote docker tag exists."""
-    return subprocess.run(['docker', 'manifest', 'inspect', tag], check=True).returncode == 1
+    return subprocess.run(['docker', 'manifest', 'inspect', tag]).returncode == 0
 
 
 def main(docker_compose_path='docker-compose.yml'):
