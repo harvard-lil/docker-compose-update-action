@@ -31,7 +31,7 @@ runs:
       shell: bash
       run: |
         set -x
-        pip install -r requirements.txt
+        pip install -r ${{ github.action_path }}/requirements.txt
         python ${{ github.action_path }}/update_tags.py
 
     - name: Set up QEMU
