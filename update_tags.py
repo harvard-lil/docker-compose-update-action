@@ -1,7 +1,6 @@
-import re
+import argparse
 import hashlib
 import subprocess
-import sys
 from pathlib import Path
 import os.path
 
@@ -38,11 +37,13 @@ def get_changed_tags(override_path, override_text):
     """
     override_yaml = yaml.safe_load(override_text)
     changed_tags = []
+    all_services = []
 
     for service_name, service in override_yaml['services'].items():
         # only process services with an x-hash-paths setting
         if 'build' in service and 'x-hash-paths' in service['build']:
             print(f"- Processing {service_name}")
+            all_services.append(service_name)
             build = service['build']
             tags = build['x-bake'].pop('tags')  # pop tags so they won't be included in hash
 
@@ -67,7 +68,7 @@ def get_changed_tags(override_path, override_text):
         else:
             print(f"- Skipping {service_name}")
 
-    return changed_tags
+    return changed_tags, all_services
 
 
 def remote_tag_exists(tag):
@@ -75,7 +76,7 @@ def remote_tag_exists(tag):
     return subprocess.run(['docker', 'manifest', 'inspect', tag]).returncode == 0
 
 
-def main(docker_compose_path='docker-compose.yml'):
+def main(docker_compose_path='docker-compose.yml', action='load'):
     """Get hash based on paths that go into docker image, update docker image tag, and set current tag."""
     # load docker-compose.yml and docker-compose.override.yml files
     print(f"Processing {docker_compose_path}")
@@ -83,27 +84,34 @@ def main(docker_compose_path='docker-compose.yml'):
     docker_compose_text = docker_compose_path.read_text()
     override_path = docker_compose_path.with_suffix('.override.yml')
     override_text = override_path.read_text()
-    changed_tags = get_changed_tags(override_path, override_text)
-    to_rebuild = []
+    changed_tags, all_services = get_changed_tags(override_path, override_text)
 
+    # write updated tags to docker-compose.yml and docker-compose.override.yml
     if changed_tags:
-        # write updated tags to docker-compose.yml and docker-compose.override.yml
         for service_name, old_tag, new_tag in changed_tags:
             print(f"- Updating {service_name} from {old_tag} to {new_tag}")
             docker_compose_text = docker_compose_text.replace(old_tag, new_tag)
             override_text = override_text.replace(old_tag, new_tag)
-            if not remote_tag_exists(new_tag):
-                print(f" - {new_tag} does not exist, adding to rebuild list")
-                to_rebuild.append(service_name)
         docker_compose_path.write_text(docker_compose_text)
         override_path.write_text(override_text)
+
+    # check which services need rebuild
+    to_check = all_services if action == 'push' else [c[0] for c in changed_tags]
+    to_rebuild = [tag for tag in to_check if not remote_tag_exists(tag)]
 
     # string format to set steps.get-tag.outputs.rebuild_services if printed:
     print(f"Returning services-to-rebuild: {to_rebuild}")
     return f"::set-output name=services-to-rebuild::{' '.join(to_rebuild)}"
 
 
-if __name__ == '__main__':
-    docker_compose_path = sys.argv[1] if len(sys.argv) > 1 else 'docker-compose.yml'
-    out = main(docker_compose_path)
+def run_from_command_line():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', dest='action', help='Buildx bake action -- if push, will check all services for need to rebuild', choices=['load', 'push'], default='load')
+    parser.add_argument('-f', dest='docker_compose_path', help='path to docker-compose.yml', default='docker-compose.yml')
+    args = parser.parse_args()
+    out = main(args.docker_compose_path, args.action)
     print(out)
+
+
+if __name__ == '__main__':
+    run_from_command_line()

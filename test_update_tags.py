@@ -55,6 +55,10 @@ def test_main(test_files, monkeypatch):
     out = update_tags.main(compose_path)
     assert out == f"::set-output name=services-to-rebuild::"
 
+    # 'push' action checks rebuild for all tags
+    out = update_tags.main(compose_path, action='push')
+    assert out == f"::set-output name=services-to-rebuild::toplevel subdir"
+
     # check hash values -- hashes are: build config, Dockerfile contents, x-hash-paths contents
     toplevel_hash = "bd018100e5b1c9159130decc1fa8884c"
     subdir_hash = "e6f9e079c6d2d933a50120f9b20ff869"
@@ -100,3 +104,12 @@ def test_main(test_files, monkeypatch):
               x-hash-paths:
                 - b.txt
     """).strip()
+
+
+def test_run_from_command_line(monkeypatch):
+    def main_patch(docker_compose_path, action):
+        assert docker_compose_path == 'foo/docker-compose.yml'
+        assert action == 'push'
+    monkeypatch.setattr("sys.argv", ["foo", "-a", "push", "-f", "foo/docker-compose.yml"])
+    monkeypatch.setattr(update_tags, 'main', main_patch)
+    update_tags.run_from_command_line()

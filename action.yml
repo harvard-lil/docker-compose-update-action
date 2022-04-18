@@ -36,7 +36,7 @@ runs:
       run: |
         set -x
         pip install -r ${{ github.action_path }}/requirements.txt
-        python ${{ github.action_path }}/update_tags.py
+        python ${{ github.action_path }}/update_tags.py -a "${{ inputs.bake-action }}"
 
     - name: Set up QEMU
       if: steps.update-tags.outputs.services-to-rebuild != '' && inputs.bake-action == 'push'
