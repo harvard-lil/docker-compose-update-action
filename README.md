@@ -38,9 +38,6 @@ Use this action like this:
 ```
   - name: Rebuild docker images if necessary
     uses: harvard-lil/docker-compose-update-action@main
-    with:
-      registry-user: ${{ secrets.REPOSITORY_USER }}
-      registry-pass: ${{ secrets.REPOSITORY_TOKEN }}
 ```
 
 For each service with an x-hash-paths section in docker-compose.override.yml, the action will:
@@ -51,7 +48,20 @@ For each service with an x-hash-paths section in docker-compose.override.yml, th
 * If the hashes do not match, update the version number and hash in both the docker-compose.yml
   and docker-compose.override.yml files.
 * If the new tag does not exist in the container registry, rebuild.
-* If the action has sufficient permissions, push the new image to the registry.
+
+By default the action will load new images to the local docker cache. If you want to push the
+images to the registry instead, add `bake-action: push` and registry credentials. The event name
+must be `push` for this to work:
+
+```
+  - name: Rebuild docker images if necessary
+    uses: harvard-lil/docker-compose-update-action@main
+    with:
+      registry: docker.io
+      registry-user: ${{ secrets.REGISTRY_USER }}
+      registry-pass: ${{ secrets.REGISTRY_TOKEN }}
+      bake-action: push
+```
 
 Outputs:
 
