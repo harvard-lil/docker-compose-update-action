@@ -61,7 +61,8 @@ runs:
       run: |
         set -x
 
-        BUILD_COMMAND="docker buildx bake -f docker-compose.yml -f docker-compose.override.yml ${{ steps.update-tags.outputs.services-to-rebuild }}"
+        BUILD_COMMAND="docker buildx bake -f docker-compose.yml -f docker-compose.override.yml ${{ steps.update-tags.outputs.services-to-rebuild }} \
+                      --set '*.cache-to=type=local,mode=max,dest=/tmp/.buildx-cache' --set '*.cache-from=type=local,src=/tmp/.buildx-cache'"
 
         if [ "${{ github.event_name }}" != "push" ] || [ "${{ inputs.bake-action }}" == "load" ]; then
           # just build for local tests on PRs
