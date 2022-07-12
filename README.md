@@ -18,6 +18,12 @@ And a docker-compose.override.yml like this:
         web:
             build:
                 context: .
+                cache_from:
+                  - type: registry
+                  - ref: "registry.lil.tools/harvardlil/cap-db:buildcache"
+                cache_to:
+                  - type: registry
+                  - ref: "registry.lil.tools/harvardlil/cap-db:buildcache,type=max"
                 x-bake:
                     tags:
                         - harvardlil/capstone:10-efd312bc82881d1da5ef46cebce39b4c
@@ -26,6 +32,12 @@ And a docker-compose.override.yml like this:
         db:
             build:
                 context: .
+                cache_from:
+                  - type: registry
+                  - ref: "registry.lil.tools/harvardlil/cap-db:buildcache"
+                cache_to:
+                  - type: registry
+                  - ref: "registry.lil.tools/harvardlil/cap-db:buildcache,type=max"
                 x-bake:
                     tags:
                         - harvardlil/capstone-db:0.2-d8509b42e874e7d71bdb89edf5e7e01b
