@@ -64,7 +64,7 @@ def get_changed_tags(override_path, override_text):
                 new_tag = f"{image_name}:{'.'.join(digits)}-{hash}"
                 changed_tags.append((service_name, old_tag, new_tag))
             else:
-                print(f" - No change")
+                print(" - No change")
         else:
             print(f"- Skipping {service_name}")
 
