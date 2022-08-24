@@ -55,9 +55,10 @@ def test_main(test_files, monkeypatch):
     out = update_tags.main(compose_path)
     assert out == f"::set-output name=services-to-rebuild::"
 
-    # 'push' action checks rebuild for all tags
+    # 'push' action checks rebuild for all tags if there are any
+    # changes -- but there aren't any at this point
     out = update_tags.main(compose_path, action='push')
-    assert out == f"::set-output name=services-to-rebuild::toplevel subdir"
+    assert out == f"::set-output name=services-to-rebuild::"
 
     # check hash values -- hashes are: build config, Dockerfile contents, x-hash-paths contents
     toplevel_hash = "bd018100e5b1c9159130decc1fa8884c"

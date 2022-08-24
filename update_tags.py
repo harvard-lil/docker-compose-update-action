@@ -64,7 +64,7 @@ def get_changed_tags(override_path, override_text):
                 new_tag = f"{image_name}:{'.'.join(digits)}-{hash}"
                 changed_tags.append((service_name, old_tag, new_tag))
             else:
-                print(f" - No change")
+                print(" - No change")
         else:
             print(f"- Skipping {service_name}")
 
@@ -97,7 +97,9 @@ def main(docker_compose_path='docker-compose.yml', action='load'):
 
     # check which services need rebuild
     to_check = all_services if action == 'push' else [c[0] for c in changed_tags]
-    to_rebuild = [tag for tag in to_check if not remote_tag_exists(tag)]
+    to_rebuild = [c[0] for c in changed_tags
+                  if c[0] in to_check
+                  and not remote_tag_exists(c[2])]
 
     # string format to set steps.get-tag.outputs.rebuild_services if printed:
     print(f"Returning services-to-rebuild: {to_rebuild}")
