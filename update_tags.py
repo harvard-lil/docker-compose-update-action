@@ -43,7 +43,6 @@ def get_changed_tags(override_path, override_text):
         # only process services with an x-hash-paths setting
         if 'build' in service and 'x-hash-paths' in service['build']:
             print(f"- Processing {service_name}")
-            all_services.append(service_name)
             build = service['build']
             tags = build['x-bake'].pop('tags')  # pop tags so they won't be included in hash
 
@@ -63,7 +62,9 @@ def get_changed_tags(override_path, override_text):
                 digits[-1] = str(int(digits[-1]) + 1)
                 new_tag = f"{image_name}:{'.'.join(digits)}-{hash}"
                 changed_tags.append((service_name, old_tag, new_tag))
+                all_services.append((service_name, new_tag))
             else:
+                all_services.append((service_name, old_tag))
                 print(" - No change")
         else:
             print(f"- Skipping {service_name}")
@@ -96,10 +97,10 @@ def main(docker_compose_path='docker-compose.yml', action='load'):
         override_path.write_text(override_text)
 
     # check which services need rebuild
-    to_check = all_services if action == 'push' else [c[0] for c in changed_tags]
-    to_rebuild = [c[0] for c in changed_tags
-                  if c[0] in to_check
-                  and not remote_tag_exists(c[2])]
+    if action == 'push':
+        to_rebuild = [s[0] for s in all_services if not remote_tag_exists(s[1])]
+    else:
+        to_rebuild = [c[0] for c in changed_tags if not remote_tag_exists(c[2])]
 
     # string format to set steps.get-tag.outputs.rebuild_services if printed:
     print(f"Returning services-to-rebuild: {to_rebuild}")
