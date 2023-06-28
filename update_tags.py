@@ -1,7 +1,6 @@
 import argparse
 import hashlib
-import shlex
-import subprocess
+import requests
 from pathlib import Path
 import os.path
 
@@ -75,9 +74,15 @@ def get_changed_tags(override_path, override_text):
 
 def remote_tag_exists(tag):
     """Check if a remote docker tag exists."""
-    cmd = f'docker manifest inspect {tag}'
-    print(f'Checking remote tag with `{cmd}`')
-    return subprocess.run(shlex.split(cmd)).returncode == 0
+    # the full tag is something like example.com/project/image:0.01
+    # and the curl command from https://stackoverflow.com/a/65826563 needs
+    # https://example.com/v2/project/image/tags/list
+    remote, version = tag.split(':')
+    host, repository = remote.split('/', 1)
+
+    # can we assume https?
+    r = requests.get(f'https://{host}/v2/{repository}/tags/list')
+    return version in r.json()['tags']
 
 
 def main(docker_compose_path='docker-compose.yml', action='load'):
