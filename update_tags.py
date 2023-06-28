@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import shlex
 import subprocess
 from pathlib import Path
 import os.path
@@ -74,7 +75,9 @@ def get_changed_tags(override_path, override_text):
 
 def remote_tag_exists(tag):
     """Check if a remote docker tag exists."""
-    return subprocess.run(['docker', 'manifest', 'inspect', tag]).returncode == 0
+    cmd = f'docker manifest inspect {tag}'
+    print(f'Checking remote tag with `{cmd}`')
+    return subprocess.run(shlex.split(cmd)).returncode == 0
 
 
 def main(docker_compose_path='docker-compose.yml', action='load'):
