@@ -82,7 +82,12 @@ def remote_tag_exists(tag):
 
     # can we assume https?
     r = requests.get(f'https://{host}/v2/{repository}/tags/list')
-    return version in r.json()['tags']
+    if r.status_code == 404:
+        # this repository doesn't exist yet; there may be other conditions
+        # we should check here
+        return False
+    else:
+        return version in r.json()['tags']
 
 
 def main(docker_compose_path='docker-compose.yml', action='load'):
