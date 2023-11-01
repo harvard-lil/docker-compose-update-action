@@ -2,7 +2,6 @@ import argparse
 import hashlib
 import requests
 from pathlib import Path
-import os.path
 
 import yaml
 
@@ -48,8 +47,8 @@ def get_changed_tags(override_path, override_text):
 
             # calculate new hash
             context = override_path.parent / build.get('context', '.')
-            docker_file_path = os.path.join(context, build.get('dockerfile', 'Dockerfile'))
-            hash_paths = sorted(set([docker_file_path] + [os.path.join(context, path) for path in build['x-hash-paths']]))
+            docker_file_path = context / build.get('dockerfile', 'Dockerfile')
+            hash_paths = sorted(set([docker_file_path] + [context / path for path in build['x-hash-paths']]))
             hash = get_hash(hash_paths, init_string=str(service['build']))
 
             # if new hash isn't in current tag, calculate new tag
