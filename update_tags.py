@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import requests
 from pathlib import Path
+import os
 
 import yaml
 
@@ -114,9 +115,10 @@ def main(docker_compose_path='docker-compose.yml', action='load'):
     else:
         to_rebuild = [c[0] for c in changed_tags if not remote_tag_exists(c[2])]
 
-    # string format to set steps.get-tag.outputs.rebuild_services if printed:
-    print(f"Returning services-to-rebuild: {to_rebuild}")
-    return f"::set-output name=services-to-rebuild::{' '.join(to_rebuild)}"
+    # append services-to-rebuild to GITHUB_OUTPUT
+    print(f"Setting services-to-rebuild: {to_rebuild}")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f"services-to-rebuild={' '.join(to_rebuild)}", file=fh)
 
 
 def run_from_command_line():
