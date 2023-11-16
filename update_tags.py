@@ -2,7 +2,7 @@ import argparse
 import hashlib
 import requests
 from pathlib import Path
-import os.path
+import os
 
 import yaml
 
@@ -48,8 +48,8 @@ def get_changed_tags(override_path, override_text):
 
             # calculate new hash
             context = override_path.parent / build.get('context', '.')
-            docker_file_path = os.path.join(context, build.get('dockerfile', 'Dockerfile'))
-            hash_paths = sorted(set([docker_file_path] + [os.path.join(context, path) for path in build['x-hash-paths']]))
+            docker_file_path = context / build.get('dockerfile', 'Dockerfile')
+            hash_paths = sorted(set([docker_file_path] + [context / path for path in build['x-hash-paths']]))
             hash = get_hash(hash_paths, init_string=str(service['build']))
 
             # if new hash isn't in current tag, calculate new tag
@@ -115,9 +115,10 @@ def main(docker_compose_path='docker-compose.yml', action='load'):
     else:
         to_rebuild = [c[0] for c in changed_tags if not remote_tag_exists(c[2])]
 
-    # string format to set steps.get-tag.outputs.rebuild_services if printed:
-    print(f"Returning services-to-rebuild: {to_rebuild}")
-    return f"::set-output name=services-to-rebuild::{' '.join(to_rebuild)}"
+    # append services-to-rebuild to GITHUB_OUTPUT
+    print(f"Setting services-to-rebuild: {to_rebuild}")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f"services-to-rebuild={' '.join(to_rebuild)}", file=fh)
 
 
 def run_from_command_line():

@@ -5,6 +5,7 @@ from shutil import copytree
 from textwrap import dedent
 
 import pytest
+import os
 
 import update_tags
 
@@ -48,17 +49,17 @@ def test_main(test_files, monkeypatch):
     monkeypatch.setattr(update_tags, 'remote_tag_exists', lambda *args: False)
 
     # first run detects changes to toplevel and subdir
-    out = update_tags.main(compose_path)
-    assert out == f"::set-output name=services-to-rebuild::toplevel subdir"
+    update_tags.main(compose_path)
+    assert github_output() == "services-to-rebuild=toplevel subdir"
 
     # no update the second time
-    out = update_tags.main(compose_path)
-    assert out == f"::set-output name=services-to-rebuild::"
+    update_tags.main(compose_path)
+    assert github_output() == "services-to-rebuild="
 
     # 'push' action checks rebuild for all tags if there are any
     # changes
-    out = update_tags.main(compose_path, action='push')
-    assert out == f"::set-output name=services-to-rebuild::toplevel subdir"
+    update_tags.main(compose_path, action='push')
+    assert github_output() == "services-to-rebuild=toplevel subdir"
 
     # check hash values -- hashes are: build config, Dockerfile contents, x-hash-paths contents
     toplevel_hash = "bd018100e5b1c9159130decc1fa8884c"
@@ -114,3 +115,15 @@ def test_run_from_command_line(monkeypatch):
     monkeypatch.setattr("sys.argv", ["foo", "-a", "push", "-f", "foo/docker-compose.yml"])
     monkeypatch.setattr(update_tags, 'main', main_patch)
     update_tags.run_from_command_line()
+
+
+def github_output():
+    """
+    This returns the last (i.e. current) non-blank line of the file
+    that GitHub uses to track action output. See
+    https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+    which advises appending to this file.
+    """
+    return Path(
+        os.environ['GITHUB_OUTPUT']
+    ).read_text().rstrip().split('\n')[-1]
