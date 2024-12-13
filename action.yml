@@ -61,7 +61,7 @@ runs:
       run: |
         set -x
 
-        touch /tmp/.buildx-cache
+        mkdir -p /tmp/.buildx-cache
         BUILD_COMMAND="docker buildx bake -f docker-compose.yml -f docker-compose.override.yml ${{ steps.update-tags.outputs.services-to-rebuild }} \
                       --set *.cache-to=type=local,mode=max,dest=/tmp/.buildx-cache --set *.cache-from=type=local,src=/tmp/.buildx-cache"
 
